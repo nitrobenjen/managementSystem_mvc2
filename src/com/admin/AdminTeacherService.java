@@ -2,6 +2,8 @@ package com.admin;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.*;
 
 import javax.servlet.ServletException;
@@ -53,6 +55,7 @@ public class AdminTeacherService {
 			teachersubcheck.put(m.getTeacher_id(), disabled);
 		}
 
+
 		request.setAttribute("teachercheck1", teachercheck1);
 		request.setAttribute("teachersubcheck", teachersubcheck);
 		request.setAttribute("teacherlist", teacherlist);
@@ -63,6 +66,10 @@ public class AdminTeacherService {
 		return "/WEB-INF/view/admin/adminteacher.jsp";
 
 	}
+	
+	
+	
+	
 
 	// 강사 선택과목 호출을 위한 ajax 메소드
 
@@ -88,47 +95,71 @@ public class AdminTeacherService {
 
 	// 강사관리 메인페이지
 	public String adminteacherinsert(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
+			throws ServletException, IOException, SQLException {
 
 		// 액션 코드 작성
-		String name = request.getParameter("name");
+		String name_ = request.getParameter("name_");
 		String phone = request.getParameter("phone");
 		String ssn = request.getParameter("ssn");
-
-		List<AdminTeacher> teacherlist = new ArrayList<AdminTeacher>();
-		AdminTeacherDAO dao = new AdminTeacherDAO();
-
+		String[] sub = request.getParameterValues("sub");
+		int result=0;
+		int result2=0;
 		
-		Map<String, String> teachercheck1 = new HashMap<String, String>();
-		Map<String, String> teachersubcheck = new HashMap<String, String>();
-		int a, b = 0;
-
-		for (AdminTeacher m : teacherlist) {
-			String disabled = "";
-			a = dao.teacherdelcheck1(m.getTeacher_id());
-			b = dao.teacherdelcheck2(m.getTeacher_id());
-			if (a + b != 0) {
-				disabled = "disabled";
+		Connection conn = null;
+		conn.setAutoCommit(false);
+		
+		try {
+			conn = DBConnection.connect();
+			AdminTeacherDAO dao = new AdminTeacherDAO();
+			
+			String teacher_id = dao.teacherid();
+			
+			AdminTeacher t = new AdminTeacher();
+			t.setTeacher_id(teacher_id);
+			t.setTeacher_name(name_);
+			t.setTeacher_phone(phone);
+			t.setTeacher_ssn(ssn);
+			
+			result = dao.teacherinsert(t);
+			
+			if (sub.length != 0) {
+				
+				for(int i=0; i<sub.length; i++) {
+					result2 = dao.teacherinsertsub(teacher_id, sub[i]);
+					
+					if(result2 != 100) {
+						break;
+					}
+				}				
+				
 			}
-			teachercheck1.put(m.getTeacher_id(), disabled);
-		}
-
-		for (AdminTeacher m : teacherlist) {
-			a = 0;
-			String disabled = "";
-			a = m.getCount_();
-			if (a == 0) {
-				disabled = "disabled";
+			
+			if(result != 100 || result2 != 100) {
+				conn.rollback();
+			}else {
+				conn.commit();
 			}
-			teachersubcheck.put(m.getTeacher_id(), disabled);
+			
+			
+			
+		} catch (ClassNotFoundException | SQLException e) {
+			conn.rollback();
+			e.printStackTrace();
+			
+		} finally  {
+			
+			
+			try {
+				DBConnection.close();
+			} catch (SQLException se) {
+				se.printStackTrace();
+			}
+		
 		}
-
-		request.setAttribute("teachercheck1", teachercheck1);
-		request.setAttribute("teachersubcheck", teachersubcheck);
-		request.setAttribute("teacherlist", teacherlist);
+		
 
 		// 뷰 페이지 주소 지정 -> 포워딩
-		return "/WEB-INF/view/admin/adminteacher.jsp";
+		return "/WEB-INF/view/redirect.jsp?url=adminteachermain.it";
 
 	}
 

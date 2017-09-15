@@ -34,7 +34,7 @@ public class AdminBasicService {
 		for (AdminBasic m : courselist) {
 			String disabled = "";
 			a = dao.courselistcheck(m.getCourse_id());
-			if (a != 0) {
+			if (a != 0) {	
 				disabled = "disabled";
 			}
 			courselistcheck.put(m.getCourse_id(), disabled);
