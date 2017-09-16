@@ -61,6 +61,11 @@ public class AdminTeacherDAO {
 			try {
 				if (pstmt != null)
 					pstmt.close();
+				if(conn != null) {
+					conn.close();
+				}
+				
+				
 			} catch (SQLException se2) {
 			}
 			try {
@@ -142,7 +147,7 @@ public class AdminTeacherDAO {
 			} catch (SQLException se2) {
 			}
 			try {
-				DBConnection.close();
+				conn.close();
 			} catch (SQLException se) {
 				se.printStackTrace();
 			}
