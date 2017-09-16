@@ -1,6 +1,7 @@
 package com.admin;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -8,47 +9,83 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.gson.Gson;
 import com.oreilly.servlet.MultipartRequest;
 import com.util.*;
 
 public class AdminBasicService {
 
+	//////////////////////////////////////////////////////////////////
+	// 기본정보 > 과정리스트
 	public String adminbasiccourselist(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
 		// 액션 코드 작성
-		String key = request.getParameter("key");
-		String value = request.getParameter("value");
-
-		if (key == null) {
-			key = "all";
-			value = "";
-		}
 		List<AdminBasic> courselist = new ArrayList<AdminBasic>();
 		AdminBasicDAO dao = new AdminBasicDAO();
 
-		courselist = dao.courselist(key, value);
-		Map<String, String> courselistcheck = new HashMap<String, String>();
-		int a = 0;
+		courselist = dao.courselist();
 
-		for (AdminBasic m : courselist) {
-			String disabled = "";
-			a = dao.courselistcheck(m.getCourse_id());
-			if (a != 0) {	
-				disabled = "disabled";
+		// 삭제 비활성화 처리를 위한 메소드호출
+		List<String> temp = dao.courselistcheck();
+		Map<String, String> courselistcheck = new HashMap<String, String>();
+
+		for (int i = 0; i < courselist.size(); i++) {
+			for (int j = 0; j < temp.size(); j++) {
+				if (courselist.get(i).getCourse_id().equals(temp.get(j))) {
+					courselistcheck.put(courselist.get(i).getCourse_id(), "disabled");
+					break;
+				}
 			}
-			courselistcheck.put(m.getCourse_id(), disabled);
 		}
 
 		request.setAttribute("courselistcheck", courselistcheck);
 		request.setAttribute("courselist", courselist);
-		request.setAttribute("key", key);
-		request.setAttribute("value", value);
 
 		// 뷰 페이지 주소 지정 -> 포워딩
 		return "/WEB-INF/view/admin/basic_course.jsp";
 	}
 
+	// 기본정보 > 과정 > 검색
+	public void adminbasiccoursearch(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+
+		response.setCharacterEncoding("UTF-8");
+
+		// 액션 코드 작성
+		String key = request.getParameter("key");
+		String value = request.getParameter("value");
+
+		List<AdminBasic> courselist = new ArrayList<AdminBasic>();
+		AdminBasicDAO dao = new AdminBasicDAO();
+
+		// 검색
+		if ("name_".equals(key)) {
+			courselist = dao.coursesearchname(value);
+		}
+
+		// 삭제 비활성화 처리를 위한 메소드호출
+		List<String> temp = new ArrayList<String>();
+		temp = dao.courselistcheck();
+
+		for (int i = 0; i < courselist.size(); i++) {
+			for (int j = 0; j < temp.size(); j++) {
+				if (courselist.get(i).getCourse_id().equals(temp.get(j))) {
+					courselist.get(i).setCheck("disabled");
+					break;
+				}
+			}
+		}
+
+		Gson gson = new Gson();
+		PrintWriter out = response.getWriter();
+		out.write(gson.toJson(courselist));
+		out.flush();
+		out.close();
+
+	}
+
+	// 기본정보 과정 입력
 	public String adminbasiccourseinsert(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException, SQLException {
 
@@ -62,6 +99,7 @@ public class AdminBasicService {
 
 	}
 
+	// 기본정보 과정 수정
 	public String adminbasiccoursemodify(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException, SQLException {
 
@@ -80,6 +118,7 @@ public class AdminBasicService {
 
 	}
 
+	// 기본정보 과정 삭제
 	public String adminbasiccoursedel(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException, SQLException {
 
@@ -100,42 +139,84 @@ public class AdminBasicService {
 
 	/////////////////// 기초 과목/////////////////////////
 
-	// 과목 리스트 및 검색
+	// 과목 리스트
 	public String adminbasicsub(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
+
+		// 액션 코드 작성
+
+		List<AdminBasic> sublist = new ArrayList<AdminBasic>();
+		AdminBasicDAO dao = new AdminBasicDAO();
+		sublist = dao.sublist();
+
+		// 삭제 비활성화
+		List<String> temp = dao.sublistcheck();
+		List<String> temp2 = dao.sublistcheck2();
+		Map<String, String> sublistcheck = new HashMap<String, String>();
+
+		// 비활성화 시켜야할 id를 한 곳에 모아둔다.
+		for (String m : temp2) {
+			temp.add(m);
+		}
+
+		for (int i = 0; i < sublist.size(); i++) {
+			for (int j = 0; j < temp.size(); j++) {
+				if (sublist.get(i).getSubject_id().equals(temp.get(j))) {
+					sublistcheck.put(sublist.get(i).getSubject_id(), "disabled");
+					break;
+				}
+			}
+		}
+
+		request.setAttribute("sublistcheck", sublistcheck);
+		request.setAttribute("sublist", sublist);
+
+		// 뷰 페이지 주소 지정 -> 포워딩
+		return "/WEB-INF/view/admin/basic_sub.jsp";
+
+	}
+
+	// 기본정보 > 과목 > 검색
+	public void adminbasicsubsearch(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+
+		response.setCharacterEncoding("UTF-8");
 
 		// 액션 코드 작성
 		String key = request.getParameter("key");
 		String value = request.getParameter("value");
 
-		if (key == null) {
-			key = "all";
-			value = "";
-		}
 		List<AdminBasic> sublist = new ArrayList<AdminBasic>();
 		AdminBasicDAO dao = new AdminBasicDAO();
 
-		sublist = dao.sublist(key, value);
-		Map<String, String> sublistcheck = new HashMap<String, String>();
-		int a, b = 0;
-
-		for (AdminBasic m : sublist) {
-			String disabled = "";
-			a = dao.sublistcheck(m.getSubject_id());
-			b = dao.sublistcheck2(m.getSubject_id());
-			if (a + b != 0) {
-				disabled = "disabled";
-			}
-			sublistcheck.put(m.getSubject_id(), disabled);
+		// 검색
+		if ("name_".equals(key)) {
+			sublist = dao.subsearchname(value);
 		}
 
-		request.setAttribute("sublistcheck", sublistcheck);
-		request.setAttribute("sublist", sublist);
-		request.setAttribute("key", key);
-		request.setAttribute("value", value);
+		// 삭제 비활성화
+		List<String> temp = dao.sublistcheck();
+		List<String> temp2 = dao.sublistcheck2();
 
-		// 뷰 페이지 주소 지정 -> 포워딩
-		return "/WEB-INF/view/admin/basic_sub.jsp";
+		// 비활성화 시켜야할 id를 한 곳에 모아둔다.
+		for (String m : temp2) {
+			temp.add(m);
+		}
+
+		for (int i = 0; i < sublist.size(); i++) {
+			for (int j = 0; j < temp.size(); j++) {
+				if (sublist.get(i).getSubject_id().equals(temp.get(j))) {
+					sublist.get(i).setCheck("disabled");
+					break;
+				}
+			}
+		}
+
+		Gson gson = new Gson();
+		PrintWriter out = response.getWriter();
+		out.write(gson.toJson(sublist));
+		out.flush();
+		out.close();
 
 	}
 
@@ -194,41 +275,73 @@ public class AdminBasicService {
 
 	/////////////////// 기초 교재/////////////////////////
 
-	// 과목 리스트 및 검색
+	// 교재 리스트
 	public String adminbasicbook(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
+
+		// 액션 코드 작성
+
+		List<AdminBasic> booklist = new ArrayList<AdminBasic>();
+		AdminBasicDAO dao = new AdminBasicDAO();
+
+		booklist = dao.booklist();
+		Map<String, String> booklistcheck = new HashMap<String, String>();
+		List<String> temp = dao.booklistcheck();
+
+		for (int i = 0; i < booklist.size(); i++) {
+			for (int j = 0; j < temp.size(); j++) {
+				if (booklist.get(i).getBook_id().equals(temp.get(j))) {
+					booklistcheck.put(booklist.get(i).getBook_id(), "disabled");
+					break;
+				}
+			}
+		}
+
+		request.setAttribute("booklistcheck", booklistcheck);
+		request.setAttribute("booklist", booklist);
+
+		// 뷰 페이지 주소 지정 -> 포워딩
+		return "/WEB-INF/view/admin/basic_book.jsp";
+
+	}
+
+	// 교재 검색
+	public void adminbasicbooksearch(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		
+		response.setCharacterEncoding("UTF-8");
 
 		// 액션 코드 작성
 		String key = request.getParameter("key");
 		String value = request.getParameter("value");
 
-		if (key == null) {
-			key = "all";
-			value = "";
-		}
 		List<AdminBasic> booklist = new ArrayList<AdminBasic>();
 		AdminBasicDAO dao = new AdminBasicDAO();
 
-		booklist = dao.booklist(key, value);
-		Map<String, String> booklistcheck = new HashMap<String, String>();
-		int a = 0;
+	
+		if ("name_".equals(key)) {
+			booklist = dao.booklistsearchname(value);
+		} else if ("publisher".equals(key)) {
+			booklist = dao.booklistsearchpuble(value);
+		}
+		
+		List<String> temp = new ArrayList<String>();
+		temp = dao.courselistcheck();
 
-		for (AdminBasic m : booklist) {
-			String disabled = "";
-			a = dao.booklistcheck(m.getBook_id());
-			if (a != 0) {
-				disabled = "disabled";
+		for (int i = 0; i < booklist.size(); i++) {
+			for (int j = 0; j < temp.size(); j++) {
+				if (booklist.get(i).getBook_id().equals(temp.get(j))) {
+					booklist.get(i).setCheck("disabled");
+					break;
+				}
 			}
-			booklistcheck.put(m.getBook_id(), disabled);
 		}
 
-		request.setAttribute("booklistcheck", booklistcheck);
-		request.setAttribute("booklist", booklist);
-		request.setAttribute("key", key);
-		request.setAttribute("value", value);
-
-		// 뷰 페이지 주소 지정 -> 포워딩
-		return "/WEB-INF/view/admin/basic_book.jsp";
+		Gson gson = new Gson();
+		PrintWriter out = response.getWriter();
+		out.write(gson.toJson(booklist));
+		out.flush();
+		out.close();
 
 	}
 
@@ -320,21 +433,20 @@ public class AdminBasicService {
 				String publisher = multi.getParameter("publisher");
 				String book_imgname = multi.getFilesystemName("book_imgname");
 				String book_id = multi.getParameter("book_id");
-				
+
 				AdminBasicDAO dao = new AdminBasicDAO();
 				String book_oldimgname = dao.bookimgname(book_id);
-				
-				if(book_oldimgname != null) {
-					java.io.File temp = new java.io.File(
-							String.format("%s//%s", savePath, book_oldimgname));
+
+				if (book_oldimgname != null) {
+					java.io.File temp = new java.io.File(String.format("%s//%s", savePath, book_oldimgname));
 					temp.delete();
 				}
-				
+
 				AdminBasic m = new AdminBasic();
 				m.setBook_name(book_name);
 				m.setPublisher(publisher);
 				m.setBook_imgname(book_imgname);
-				m.setBook_id(book_id);				
+				m.setBook_id(book_id);
 				code = dao.bookmodify(m);
 
 			} else {
@@ -353,179 +465,160 @@ public class AdminBasicService {
 		}
 
 		// 뷰 페이지 주소 지정 -> 포워딩
-		return String.format("/WEB-INF/view/redirect.jsp?url=%s&code=%s",url,code);
+		return String.format("/WEB-INF/view/redirect.jsp?url=%s&code=%s", url, code);
 
 	}
-	
-	
-	
+
 	// 교재 삭제
-		public String adminbasicbookdel(HttpServletRequest request, HttpServletResponse response)
-				throws ServletException, IOException, SQLException {
+	public String adminbasicbookdel(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException, SQLException {
 
-			// 액션 코드 작성
+		// 액션 코드 작성
 
-			String savePath = request.getServletContext().getRealPath("picture");
-			System.out.println(savePath);
+		String savePath = request.getServletContext().getRealPath("picture");
+		System.out.println(savePath);
 
-			int sizeLimit = 2024 * 2024; // 1M
+		int sizeLimit = 2024 * 2024; // 1M
 
-			// 파일 업로드 성공시 리다이렉트할 주소
-			String url = "adminbasicbook.it";
-			int code = 0;
+		// 파일 업로드 성공시 리다이렉트할 주소
+		String url = "adminbasicbook.it";
+		int code = 0;
 
-			try {
-				MultipartRequest multi = new MultipartRequest(request, savePath, sizeLimit, "UTF-8",
-						new MyFileRenamePolicy());
+		try {
+			MultipartRequest multi = new MultipartRequest(request, savePath, sizeLimit, "UTF-8",
+					new MyFileRenamePolicy());
 
-				// 확장자 검사 -> 예외 발생
-			
+			// 확장자 검사 -> 예외 발생
 
-					// 정상적인 경우 데이터베이스에 정보 저장
-				
-					String book_id = multi.getParameter("book_id");
-					
-					AdminBasicDAO dao = new AdminBasicDAO();
-					String book_oldimgname = dao.bookimgname(book_id);
-					
-					if(book_oldimgname != null) {
-						java.io.File temp = new java.io.File(
-								String.format("%s//%s", savePath, book_oldimgname));
-						temp.delete();
-					}
-				
-								
-					code = dao.bookdel(book_id);
+			// 정상적인 경우 데이터베이스에 정보 저장
 
-				
-			} catch (Exception e) {
-				// 파일 업로드 실패시 리다이렉트할 주소
-				url = "basicpicturefail.it";
-			}
-
-			// 뷰 페이지 주소 지정 -> 포워딩
-			return String.format("/WEB-INF/view/redirect.jsp?url=%s&code=%s",url,code);
-
-		}
-		
-		
-		
-		
-		
-		
-		/////////////////// 기초 강의실/////////////////////////
-
-		// 강의실 리스트 및 검색
-		public String adminbasicclass(HttpServletRequest request, HttpServletResponse response)
-				throws ServletException, IOException {
-
-			// 액션 코드 작성
-			String key = request.getParameter("key");
-			String value = request.getParameter("value");
-
-			if (key == null) {
-				key = "all";
-				value = "";
-			}
-			List<AdminBasic> classlist = new ArrayList<AdminBasic>();
-			AdminBasicDAO dao = new AdminBasicDAO();
-
-			classlist = dao.classlist(key, value);
-			Map<String, String> classlistcheck = new HashMap<String, String>();
-			Map<String, String> classmodifycheck = new HashMap<String, String>();
-			int a,b = 0;
-			
-
-			
-			
-			for (AdminBasic m : classlist) {
-				String disabled = "";
-				b = dao.classmodifycheck(m.getClass_id());
-				if (b != 0) {
-					disabled = "disabled";
-				}
-				classmodifycheck.put(m.getClass_id(), disabled);
-			}
-			
-
-			for (AdminBasic m : classlist) {
-				String disabled = "";
-				a = dao.classlistcheck(m.getClass_id());
-				if (a != 0) {
-					disabled = "disabled";
-				}
-				classlistcheck.put(m.getClass_id(), disabled);
-			}
-
-			request.setAttribute("classmodifycheck", classmodifycheck);
-			request.setAttribute("classlistcheck", classlistcheck);
-			request.setAttribute("classlist", classlist);
-			request.setAttribute("key", key);
-			request.setAttribute("value", value);
-
-			// 뷰 페이지 주소 지정 -> 포워딩
-			return "/WEB-INF/view/admin/basic_class.jsp";
-
-		}
-		
-		
-		// 강의실 입력
-		public String adminbasicclassinsert(HttpServletRequest request, HttpServletResponse response)
-				throws ServletException, IOException, SQLException {
-
-			// 액션 코드 작성
-			String class_name = request.getParameter("class_name");
-			String jungwon = request.getParameter("jungwon");
-			AdminBasic m = new AdminBasic();
-			m.setClass_name(class_name);
-			m.setJungwon(Integer.parseInt(jungwon));
-			
-			AdminBasicDAO dao = new AdminBasicDAO();
-			int code = dao.classinsert(m);
-
-			// 뷰 페이지 주소 지정 -> 포워딩
-			return "/WEB-INF/view/redirect.jsp?url=adminbasicclass.it&code=" + code;
-
-		}
-		
-		//강의실 수정
-		public String adminbasicclassmodify(HttpServletRequest request, HttpServletResponse response)
-				throws ServletException, IOException, SQLException {
-
-			// 액션 코드 작성
-			String class_id = request.getParameter("class_id");
-			String class_name = request.getParameter("class_name");
-			String jungwon = request.getParameter("jungwon");
-			AdminBasic m = new AdminBasic();
-			m.setClass_name(class_name);
-			m.setJungwon(Integer.parseInt(jungwon));
-			m.setClass_id(class_id);
+			String book_id = multi.getParameter("book_id");
 
 			AdminBasicDAO dao = new AdminBasicDAO();
-			int code = dao.classmodify(m);
+			String book_oldimgname = dao.bookimgname(book_id);
 
-			// 뷰 페이지 주소 지정 -> 포워딩
-			return "/WEB-INF/view/redirect.jsp?url=adminbasicclass.it&code=" + code;
+			if (book_oldimgname != null) {
+				java.io.File temp = new java.io.File(String.format("%s//%s", savePath, book_oldimgname));
+				temp.delete();
+			}
 
+			code = dao.bookdel(book_id);
+
+		} catch (Exception e) {
+			// 파일 업로드 실패시 리다이렉트할 주소
+			url = "basicpicturefail.it";
 		}
-		
-		
-		
-		// 강의실 삭제
 
-		public String adminbasicclassdel(HttpServletRequest request, HttpServletResponse response)
-				throws ServletException, IOException, SQLException {
+		// 뷰 페이지 주소 지정 -> 포워딩
+		return String.format("/WEB-INF/view/redirect.jsp?url=%s&code=%s", url, code);
 
-			// 액션 코드 작성
-			String class_id = request.getParameter("class_id");			
+	}
 
-			AdminBasicDAO dao = new AdminBasicDAO();
-			int code = dao.classdel(class_id);
+	/////////////////// 기초 강의실/////////////////////////
 
-			// 뷰 페이지 주소 지정 -> 포워딩
-			return "/WEB-INF/view/redirect.jsp?url=adminbasicclass.it&code=" + code;
+	// 강의실 리스트 및 검색
+	public String adminbasicclass(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 
+		// 액션 코드 작성
+		String key = request.getParameter("key");
+		String value = request.getParameter("value");
+
+		if (key == null) {
+			key = "all";
+			value = "";
 		}
-		
-		
+		List<AdminBasic> classlist = new ArrayList<AdminBasic>();
+		AdminBasicDAO dao = new AdminBasicDAO();
+
+		classlist = dao.classlist(key, value);
+		Map<String, String> classlistcheck = new HashMap<String, String>();
+		Map<String, String> classmodifycheck = new HashMap<String, String>();
+		int a, b = 0;
+
+		for (AdminBasic m : classlist) {
+			String disabled = "";
+			b = dao.classmodifycheck(m.getClass_id());
+			if (b != 0) {
+				disabled = "disabled";
+			}
+			classmodifycheck.put(m.getClass_id(), disabled);
+		}
+
+		for (AdminBasic m : classlist) {
+			String disabled = "";
+			a = dao.classlistcheck(m.getClass_id());
+			if (a != 0) {
+				disabled = "disabled";
+			}
+			classlistcheck.put(m.getClass_id(), disabled);
+		}
+
+		request.setAttribute("classmodifycheck", classmodifycheck);
+		request.setAttribute("classlistcheck", classlistcheck);
+		request.setAttribute("classlist", classlist);
+		request.setAttribute("key", key);
+		request.setAttribute("value", value);
+
+		// 뷰 페이지 주소 지정 -> 포워딩
+		return "/WEB-INF/view/admin/basic_class.jsp";
+
+	}
+
+	// 강의실 입력
+	public String adminbasicclassinsert(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException, SQLException {
+
+		// 액션 코드 작성
+		String class_name = request.getParameter("class_name");
+		String jungwon = request.getParameter("jungwon");
+		AdminBasic m = new AdminBasic();
+		m.setClass_name(class_name);
+		m.setJungwon(Integer.parseInt(jungwon));
+
+		AdminBasicDAO dao = new AdminBasicDAO();
+		int code = dao.classinsert(m);
+
+		// 뷰 페이지 주소 지정 -> 포워딩
+		return "/WEB-INF/view/redirect.jsp?url=adminbasicclass.it&code=" + code;
+
+	}
+
+	// 강의실 수정
+	public String adminbasicclassmodify(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException, SQLException {
+
+		// 액션 코드 작성
+		String class_id = request.getParameter("class_id");
+		String class_name = request.getParameter("class_name");
+		String jungwon = request.getParameter("jungwon");
+		AdminBasic m = new AdminBasic();
+		m.setClass_name(class_name);
+		m.setJungwon(Integer.parseInt(jungwon));
+		m.setClass_id(class_id);
+
+		AdminBasicDAO dao = new AdminBasicDAO();
+		int code = dao.classmodify(m);
+
+		// 뷰 페이지 주소 지정 -> 포워딩
+		return "/WEB-INF/view/redirect.jsp?url=adminbasicclass.it&code=" + code;
+
+	}
+
+	// 강의실 삭제
+
+	public String adminbasicclassdel(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException, SQLException {
+
+		// 액션 코드 작성
+		String class_id = request.getParameter("class_id");
+
+		AdminBasicDAO dao = new AdminBasicDAO();
+		int code = dao.classdel(class_id);
+
+		// 뷰 페이지 주소 지정 -> 포워딩
+		return "/WEB-INF/view/redirect.jsp?url=adminbasicclass.it&code=" + code;
+
+	}
+
 }

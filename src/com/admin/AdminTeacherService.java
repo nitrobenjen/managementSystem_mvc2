@@ -79,7 +79,7 @@ public class AdminTeacherService {
 		
 		AdminBasicDAO dao = new AdminBasicDAO();
 		List<AdminBasic> result = new ArrayList<AdminBasic>();
-		result = dao.sublist("all", "");
+		result = dao.sublist();
 		
 		
 		Gson gson = new Gson();

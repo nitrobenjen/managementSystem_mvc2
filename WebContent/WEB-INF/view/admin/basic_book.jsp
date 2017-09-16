@@ -28,7 +28,14 @@
 <script>
 	$(document).ready(function() {
 		
-		$(".modifybtn").on("click", function(){
+		$('#value').keypress(function(event){
+		     if ( event.which == 13 ) {
+		         $('.searchbtn').click();
+		         return false;
+		     }
+		});
+		
+		$(document).on("click",".modifybtn", function(){
 			var book_id = $(this).val();
 			var book_name = $(this).parents("tbody tr").children().eq(1).text();			
 			$(".modal-title2").html(book_id+"&nbsp;교재 수정");
@@ -39,7 +46,7 @@
 		});
 		
 		
-		$(".delbtn").on("click", function(){
+		$(document).on("click",".delbtn", function(){
 			var book_id = $(this).val();
 			var book_name = $(this).parents("tbody tr").children().eq(1).text();
 			
@@ -49,6 +56,40 @@
 			$("#b-del-Modal").modal("show");
 			
 		});	
+		
+		
+		
+		$(".searchbtn").on("click", function(){
+			var txt ="";
+			
+			var key = $("#key").val();
+			var value =$("#value").val();
+			
+			$.ajax({
+				url :"adminbasicbooksearch.it",
+				data : {"key":key, "value":value},
+				success : function(data){
+					var myObj = JSON.parse(data);
+					$.each(myObj, function(idx, item){
+	/* 					<td><a href="${pageContext.request.contextPath}/picture/${a.book_imgname}" target="_blank" data-photo="img1" id="test">${a.book_name}</a></td> */
+						var href="";
+						if(item.book_imgname != null){
+							href = "<a href=\"${pageContext.request.contextPath}/picture/"+item.book_imgname+"\" target=\"_blank\" data-photo=\"img1\" id=\"test\">"+item.book_name+"</a>";
+						}else{
+							href = ""+item.book_name+"";
+						}
+					
+							console.log(href);
+						txt += "<tr><td>"+item.book_id+"</td><td>"+href+"</td><td>"+item.publisher+"</td><td><button type=\"button\" class=\"btn btn-default modifybtn\" value=\""+item.book_id+"\" >수정</button></td>";
+						txt += "<td><button type=\"button\" class=\"btn btn-default delbtn\" "+item.check+" value=\""+item.book_id+"\">삭제</button></td></tr>";
+									
+					})
+					
+					$(".searchlist").html(txt) 
+				
+				}});			
+			
+		});
 		
 	});
 </script>
@@ -118,7 +159,7 @@
 						<th>삭제</th>
 					</tr>
 				</thead>
-				<tbody>
+				<tbody class="searchlist">
 					<!-- 					<tr>
 						<td>B001</td>
 						<td>이것이 자바다</td>
@@ -168,9 +209,7 @@
 			</table>
 
 
-			<form class="form-inline" method="post"
-				action="${pageContext.request.contextPath}/adminbasicbook.it"
-				style="text-align: center;">
+			<form class="form-inline"  style="text-align: center;">
 				<button type="button" style="float: left;" class="btn btn-default"
 					data-toggle="modal" data-target="#b-insert-Modal">등록</button>
 				<div class="form-group">
@@ -180,10 +219,9 @@
 					</select>
 				</div>
 				<div class="form-group">
-					<input type="text" class="form-control" id="value" name="value"
-						value="${value}" required>
+					<input type="text" class="form-control" id="value" name="value"  value="${value}" required>
 				</div>
-				<button type="submit" class="btn btn-default">Search</button>
+				<button type="button" class="btn btn-default searchbtn" >Search</button>
 			</form>
 
 

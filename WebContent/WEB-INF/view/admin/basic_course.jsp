@@ -29,8 +29,14 @@
 <script>
 	$(document).ready(function() {
 		
-		
-		$(".modifybtn").on("click", function(){
+		$('#value').keypress(function(event){
+		     if ( event.which == 13 ) {
+		         $('.searchbtn').click();
+		         return false;
+		     }
+		});
+	
+		$(document).on("click",".modifybtn", function(){
 			var course_id = $(this).val();
 			var course_name = $(this).parents("tbody tr").children().eq(1).text();			
 			$(".modal-title2").html(course_id+"&nbsp;과정 수정");
@@ -40,7 +46,8 @@
 			$("#cu-mod-Modal").modal("show");
 		});
 		
-		$(".delbtn").on("click", function(){
+		
+		$(document).on("click",".delbtn", function(){
 			var course_id = $(this).val();
 			var course_name = $(this).parents("tbody tr").children().eq(1).text();
 			$(".course_id").val(course_id);
@@ -49,8 +56,28 @@
 			$("#cu-del-Modal").modal("show");
 		});	
 		
-		
-		
+		$(".searchbtn").on("click", function(){
+			var txt ="";
+			
+			var key = $("#key").val();
+			var value =$("#value").val();
+			
+			$.ajax({
+				url :"adminbasiccoursearch.it",
+				data : {"key":key, "value":value},
+				success : function(data){
+					var myObj = JSON.parse(data);
+					$.each(myObj, function(idx, item){
+						txt += "<tr><td>"+item.course_id+"</td><td>"+item.course_name+"</td><td><button type=\"button\" class=\"btn btn-default modifybtn\" value=\""+item.course_id+"\" >수정</button></td>";
+						txt += "<td><button type=\"button\" class=\"btn btn-default delbtn\" "+item.check+" value=\""+item.course_id+"\">삭제</button></td></tr>";
+									
+					})
+					
+					$(".searchlist").html(txt) 
+				
+				}});			
+			
+		});
 		
 	});
 </script>
@@ -109,7 +136,7 @@
 						<th>삭제</th>
 					</tr>
 				</thead>
-				<tbody>
+				<tbody class="searchlist">
 					<!-- <tr>
 						<td>CU001</td>
 						<td>웹기반 빅데이터 분석 응용SW개발자</td>
@@ -137,30 +164,28 @@
 			</table>
 
 
-			<form class="form-inline" method="post" action="${pageContext.request.contextPath}/adminbasiccourselist.it"  style="text-align: center; ">
-				<button type="button" style="float: left;" class="btn btn-default"
+			<form class="form-inline" style="text-align: center; ">
+			<button type="button" style="float: left;" class="btn btn-default"
 					data-toggle="modal" data-target="#cu-insert-Modal">등록</button>
 				<div class="form-group">
 				
 					<select class="form-control" id="key" name="key">
 						
-						<option value="name_" ${key == 'name_' ? "selected":"" }>과정명</option>
+						<option value="name_" >과정명</option>
 					</select>
 				</div>
 				<div class="form-group">
 					<input type="text" class="form-control" id="value" name="value" value="${value}"
 						required>
-				</div>				
-				<button type="submit" class="btn btn-default">Search</button>
-			</form> 
+				</div>	
+					
+				<button type="button" class="btn btn-default searchbtn">Search</button>
 			
+			</form>
 
 
 		</div>
 	</div>
-
-
-
 
 	<!-- 과정 입력 Modal -->
 	<div class="modal fade" id="cu-insert-Modal" role="dialog">

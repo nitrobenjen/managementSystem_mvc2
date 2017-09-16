@@ -37,8 +37,8 @@ public class AdminTeacherDAO {
 			} else if ("phone".equals(key)) {
 				pstmt.setString(1, value);
 			}
-			System.out.println(key);
-			System.out.println(value);
+			
+			
 
 			rs = pstmt.executeQuery();
 

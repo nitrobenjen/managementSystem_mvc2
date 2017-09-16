@@ -8,10 +8,10 @@ public class DBConnection {
 	
 	// JDBC driver name and database URL
 	private static final String JDBC_DRIVER = "oracle.jdbc.driver.OracleDriver";
-	private static final String DB_URL = "jdbc:oracle:thin:@211.63.89.78:1521:xe";
+	private static final String DB_URL = "jdbc:oracle:thin:@192.168.25.24:1521:xe";
 
 	// Database credentials
-	private static final String USER = "project_private";
+	private static final String USER = "project1";
 	private static final String PASS = "1234";
 	private static Connection conn;
 	
