@@ -41,7 +41,7 @@
 					var myObj = JSON.parse(data);
 					console.log(myObj);
 					$.each(myObj, function(idx, item){
-						txt += "<label><input type='checkbox' value='"+item.subject_id+"'>"+item.subject_name+"</label><br>";
+						txt += "<label><input type='checkbox' name='sub' value='"+item.subject_id+"'>"+item.subject_name+"</label><br>";
 						
 					})
 					$(".subcheckbox").append(txt) 
@@ -59,6 +59,23 @@
 			$(".subcheckbox").html("")
 			
 		});
+		
+		$(".subcount").on("click", function(){
+			
+			var teacher_id = $(this).val();
+			var teacher_name = $(this).parents("tbody tr").children().eq(1).text();
+			var teacher_phone = $(this).parents("tbody tr").children().eq(3).text();
+			console.log(teacher_id);
+			console.log(teacher_name);
+			console.log(teacher_phone);
+			
+		
+			
+			$("#tlist-Modal").modal("show");
+			
+			
+		});
+		
 		
 		
 	});
@@ -160,18 +177,18 @@
 			</table>
 
 
-			<form class="form-inline" method="post" style="text-align: center;">
+			
 				<button type="button" style="float: left;" class="btn btn-default teacherinsert">등록</button>
+				<form class="form-inline" method="post" action="${pageContext.request.contextPath}/adminteachermain.it"  style="text-align: center;">
 				<div class="form-group">
 					<select class="form-control" id="key" name="key">
-						<option value="name">이름</option>
-						<option value="phone">전화번호</option>
-						<option value="email">Email</option>
-						<option value="regDate">등록일</option>
+						<option value="name_" ${key == 'name_' ? "selected":"" }>이름</option>
+						<option value="phone" ${key == 'phone' ? "selected":"" }>전화번호</option>
+					
 					</select>
 				</div>
 				<div class="form-group">
-					<input type="text" class="form-control" id="value" name="value"
+					<input type="text" class="form-control" id="value" name="value" value="${value}"
 						required>
 				</div>
 				<button type="submit" class="btn btn-default">Search</button>
@@ -210,23 +227,7 @@
 					<tr>
 						<td>SUB001</td>
 						<td>자바 네트워트 프로그래밍</td>
-					</tr>
-					<tr>
-						<td>SUB002</td>
-						<td>자바 웹 프로그래밍</td>
-					</tr>
-					<tr>
-						<td>SUB003</td>
-						<td>JDBC 프로그래밍</td>
-					</tr>
-					<tr>
-						<td>SUB004</td>
-						<td>HTML5/CSS3/JavaScript</td>
-					</tr>
-					<tr>
-						<td>SUB005</td>
-						<td>jQuery & Ajax</td>
-					</tr>					
+					</tr>						
 				</tbody>
 			</table>
 				
@@ -252,13 +253,14 @@
 					<button type="button" class="close" data-dismiss="modal">&times;</button>
 					<h5 class="modal-title">강사 계정 등록</h5>
 				</div>
+				<form class="form-horizontal" action="${pageContext.request.contextPath}/adminteacherinsert.it" method="POST">
 				<div class="modal-body">
 				
-					<form class="form-horizontal">
+					
 						<div class="form-group">
 							<label class="control-label col-sm-3 m10">이름</label>
 							<div class="col-sm-9 m10">
-								<input class="form-control" name="name" type="text">
+								<input class="form-control" name="name_" type="text">
 							</div>
 							<label class="control-label col-sm-3 m10">전화번호</label>
 							<div class="col-sm-9 m10">
@@ -280,12 +282,13 @@
 								
 							</div>
 						</div>
-					</form>
+					
 				</div>
 				<div class="modal-footer">
 					<button type="submit" class="btn btn-default">등록</button>
 					<button type="button" class="btn btn-default" data-dismiss="modal">닫기</button>
 				</div>
+				</form>
 			</div>
 
 		</div>

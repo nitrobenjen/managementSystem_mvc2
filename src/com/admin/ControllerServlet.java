@@ -93,9 +93,9 @@ public class ControllerServlet extends HttpServlet {
 		// View 페이지 포워딩
 	
 			RequestDispatcher dispatcher = request.getRequestDispatcher(viewPage);
+		
 			dispatcher.forward(request, response);
 		
-
 	}
 
 }
