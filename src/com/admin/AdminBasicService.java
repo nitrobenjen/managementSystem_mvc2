@@ -155,9 +155,7 @@ public class AdminBasicService {
 		Map<String, String> sublistcheck = new HashMap<String, String>();
 
 		// 비활성화 시켜야할 id를 한 곳에 모아둔다.
-		for (String m : temp2) {
-			temp.add(m);
-		}
+		temp.addAll(temp2);
 
 		for (int i = 0; i < sublist.size(); i++) {
 			for (int j = 0; j < temp.size(); j++) {
@@ -199,9 +197,7 @@ public class AdminBasicService {
 		List<String> temp2 = dao.sublistcheck2();
 
 		// 비활성화 시켜야할 id를 한 곳에 모아둔다.
-		for (String m : temp2) {
-			temp.add(m);
-		}
+		temp.addAll(temp2);
 
 		for (int i = 0; i < sublist.size(); i++) {
 			for (int j = 0; j < temp.size(); j++) {
@@ -516,54 +512,105 @@ public class AdminBasicService {
 
 	/////////////////// 기초 강의실/////////////////////////
 
-	// 강의실 리스트 및 검색
+	// 강의실 리스트
 	public String adminbasicclass(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
 		// 액션 코드 작성
-		String key = request.getParameter("key");
-		String value = request.getParameter("value");
-
-		if (key == null) {
-			key = "all";
-			value = "";
-		}
 		List<AdminBasic> classlist = new ArrayList<AdminBasic>();
 		AdminBasicDAO dao = new AdminBasicDAO();
 
-		classlist = dao.classlist(key, value);
-		Map<String, String> classlistcheck = new HashMap<String, String>();
+		classlist = dao.classlist();
+		Map<String, String> classdelcheck = new HashMap<String, String>();
 		Map<String, String> classmodifycheck = new HashMap<String, String>();
-		int a, b = 0;
-
-		for (AdminBasic m : classlist) {
-			String disabled = "";
-			b = dao.classmodifycheck(m.getClass_id());
-			if (b != 0) {
-				disabled = "disabled";
+		List<String> temp = dao.classmodifycheck(); //수정 비활성화
+		List<String> temp2 = dao.classdelcheck(); //삭제 비활성화
+		
+		//삭제 비활성화
+		for (int i = 0; i < classlist.size(); i++) {
+			for (int j = 0; j < temp.size(); j++) {
+				if (classlist.get(i).getClass_id().equals(temp.get(j))) {
+					classmodifycheck.put(classlist.get(i).getClass_id(), "disabled");
+					break;
+				}
 			}
-			classmodifycheck.put(m.getClass_id(), disabled);
 		}
-
-		for (AdminBasic m : classlist) {
-			String disabled = "";
-			a = dao.classlistcheck(m.getClass_id());
-			if (a != 0) {
-				disabled = "disabled";
+		
+		//수정 비활성화
+		for (int i = 0; i < classlist.size(); i++) {
+			for (int j = 0; j < temp2.size(); j++) {
+				if (classlist.get(i).getClass_id().equals(temp2.get(j))) {
+					classdelcheck.put(classlist.get(i).getClass_id(), "disabled");
+					break;
+				}
 			}
-			classlistcheck.put(m.getClass_id(), disabled);
 		}
-
+		request.setAttribute("classdelcheck", classdelcheck);
 		request.setAttribute("classmodifycheck", classmodifycheck);
-		request.setAttribute("classlistcheck", classlistcheck);
 		request.setAttribute("classlist", classlist);
-		request.setAttribute("key", key);
-		request.setAttribute("value", value);
-
+		
 		// 뷰 페이지 주소 지정 -> 포워딩
 		return "/WEB-INF/view/admin/basic_class.jsp";
 
 	}
+	
+	
+	
+	// 강의실 리스트
+		public void adminbasicclasssearch(HttpServletRequest request, HttpServletResponse response)
+				throws ServletException, IOException {
+			
+			response.setCharacterEncoding("UTF-8");
+
+			// 액션 코드 작성
+			String key = request.getParameter("key");
+			String value = request.getParameter("value");
+			
+			List<AdminBasic> classlist = new ArrayList<AdminBasic>();
+			AdminBasicDAO dao = new AdminBasicDAO();
+			
+			if ("name_".equals(key)) {
+				classlist = dao.classsearchname(value);
+			} 
+			List<String> temp = new ArrayList<String>();
+			List<String> temp2 = new ArrayList<String>();
+			temp = dao.classdelcheck();
+			temp2 = dao.classmodifycheck();
+			
+			//삭제 체크
+			for (int i = 0; i < classlist.size(); i++) {
+				for (int j = 0; j < temp.size(); j++) {
+					if (classlist.get(i).getClass_id().equals(temp.get(j))) {
+						classlist.get(i).setCheck("disabled");
+						break;
+					}
+				}
+			}
+			
+			//수정체크
+			for (int i = 0; i < classlist.size(); i++) {
+				for (int j = 0; j < temp2.size(); j++) {
+					if (classlist.get(i).getClass_id().equals(temp2.get(j))) {
+						classlist.get(i).setCheck2("disabled");
+						break;
+					}
+				}
+			}
+
+			
+			Gson gson = new Gson();
+			PrintWriter out = response.getWriter();
+			out.write(gson.toJson(classlist));
+			out.flush();
+			out.close();
+			
+		
+
+		}
+	
+	
+	
+	
 
 	// 강의실 입력
 	public String adminbasicclassinsert(HttpServletRequest request, HttpServletResponse response)

@@ -880,31 +880,19 @@ public class AdminBasicDAO {
 
 	/////////////// 기초정보 강의실///////////////////////////////////
 
-	// 기초 정보 관리 > 강의실 리스트 >검색추가
-	public List<AdminBasic> classlist(String key, String value) {
+	// 기초 정보 관리 > 강의실 리스트
+	public List<AdminBasic> classlist() {
 		List<AdminBasic> result = new ArrayList<AdminBasic>();
 
 		Connection conn = null;
 		PreparedStatement pstmt = null;
+		ResultSet rs = null;
 		try {
 			conn = DBConnection.connect();
 
-			String sql = "SELECT class_id, class_name, jungwon FROM class_";
-
-			if ("all".equals(key)) {
-
-			} else if ("name_".equals(key)) {
-				sql += " WHERE INSTR(class_name, ?)>0";
-			}
-
-			sql += " ORDER BY class_id";
+			String sql = "SELECT class_id, class_name, jungwon FROM class_ ORDER BY class_id";
 			pstmt = conn.prepareStatement(sql);
-
-			if ("name_".equals(key)) {
-				pstmt.setString(1, value);
-			}
-
-			ResultSet rs = pstmt.executeQuery();
+			rs = pstmt.executeQuery();
 
 			while (rs.next()) {
 
@@ -917,20 +905,68 @@ public class AdminBasicDAO {
 				m.setJungwon(jungwon);
 				result.add(m);
 			}
-			rs.close();
 		} catch (ClassNotFoundException | SQLException e) {
 			e.printStackTrace();
 		} finally {
 			try {
 				if (pstmt != null)
 					pstmt.close();
-			} catch (SQLException se2) {
-			}
-			try {
-				DBConnection.close();
+				if (conn != null)
+					conn.close();
+				if (rs != null)
+					rs.close();
+
 			} catch (SQLException se) {
 				se.printStackTrace();
 			}
+
+		}
+
+		return result;
+
+	}
+
+	// 기초 정보 관리 > 강의실 검색
+	public List<AdminBasic> classsearchname(String value) {
+		List<AdminBasic> result = new ArrayList<AdminBasic>();
+
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		try {
+			conn = DBConnection.connect();
+
+			String sql = "SELECT class_id, class_name, jungwon FROM class_ WHERE INSTR(class_name, ?)>0 ORDER BY class_id";
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, value);
+			rs = pstmt.executeQuery();
+
+			while (rs.next()) {
+
+				AdminBasic m = new AdminBasic();
+				String class_id = rs.getString("class_id");
+				String class_name = rs.getString("class_name");
+				int jungwon = rs.getInt("jungwon");
+				m.setClass_id(class_id);
+				m.setClass_name(class_name);
+				m.setJungwon(jungwon);
+				result.add(m);
+			}
+		} catch (ClassNotFoundException | SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (pstmt != null)
+					pstmt.close();
+				if (conn != null)
+					conn.close();
+				if (rs != null)
+					rs.close();
+
+			} catch (SQLException se) {
+				se.printStackTrace();
+			}
+
 		}
 
 		return result;
@@ -938,38 +974,38 @@ public class AdminBasicDAO {
 	}
 
 	// 기초 정보 관리 > 강의실 리스트 > 삭제 비활성화 체크
-	public int classlistcheck(String value) {
-		int result = 0;
+	public List<String> classdelcheck() {
+		List<String> result = new ArrayList<String>();
 
 		Connection conn = null;
 		PreparedStatement pstmt = null;
+		ResultSet rs = null;
 		try {
 			conn = DBConnection.connect();
 
-			String sql = "SELECT COUNT(*) AS count_ FROM class_ o1, open_course o2 WHERE o1.class_id = o2.class_id AND o1.class_id = ?";
+			String sql = "SELECT o1.class_id FROM class_ o1, open_course o2 WHERE o1.class_id = o2.class_id";
 
 			pstmt = conn.prepareStatement(sql);
-			pstmt.setString(1, value);
-			ResultSet rs = pstmt.executeQuery();
+			rs = pstmt.executeQuery();
 
 			while (rs.next()) {
 
-				result = rs.getInt("count_");
+				result.add(rs.getString("class_id"));
 			}
-			rs.close();
 		} catch (ClassNotFoundException | SQLException e) {
 			e.printStackTrace();
 		} finally {
 			try {
 				if (pstmt != null)
 					pstmt.close();
-			} catch (SQLException se2) {
-			}
-			try {
-				DBConnection.close();
+				if (conn != null)
+					conn.close();
+				if (rs != null)
+					rs.close();
 			} catch (SQLException se) {
 				se.printStackTrace();
 			}
+
 		}
 
 		return result;
@@ -977,35 +1013,34 @@ public class AdminBasicDAO {
 	}
 
 	// 기초 정보 관리 > 강의실 리스트 > 수정 비활성화 체크
-	public int classmodifycheck(String value) {
-		int result = 0;
+	public List<String> classmodifycheck() {
+		List<String> result = new ArrayList<String>();
 
 		Connection conn = null;
 		PreparedStatement pstmt = null;
+		ResultSet rs = null;
 		try {
 			conn = DBConnection.connect();
 
-			String sql = "SELECT COUNT(*) AS count_ FROM class_ o1, open_course o2 WHERE o1.class_id = o2.class_id AND o1.class_id = ? AND TO_CHAR(o2.COURSE_END_DAY, 'YYYY-MM-DD') > SYSDATE AND TO_CHAR(o2.COURSE_START_DAY, 'YYYY-MM-DD') < SYSDATE";
+			String sql = "SELECT o1.class_id FROM class_ o1, open_course o2 WHERE o1.class_id = o2.class_id AND TO_CHAR(o2.COURSE_END_DAY, 'YYYY-MM-DD') > SYSDATE AND TO_CHAR(o2.COURSE_START_DAY, 'YYYY-MM-DD') < SYSDATE";
 
 			pstmt = conn.prepareStatement(sql);
-			pstmt.setString(1, value);
-			ResultSet rs = pstmt.executeQuery();
+			rs = pstmt.executeQuery();
 
 			while (rs.next()) {
 
-				result = rs.getInt("count_");
+				result.add(rs.getString("class_id"));
 			}
-			rs.close();
 		} catch (ClassNotFoundException | SQLException e) {
 			e.printStackTrace();
 		} finally {
 			try {
 				if (pstmt != null)
 					pstmt.close();
-			} catch (SQLException se2) {
-			}
-			try {
-				DBConnection.close();
+				if (conn != null)
+					conn.close();
+				if (rs != null)
+					rs.close();
 			} catch (SQLException se) {
 				se.printStackTrace();
 			}
@@ -1041,13 +1076,13 @@ public class AdminBasicDAO {
 			try {
 				if (pstmt != null)
 					pstmt.close();
-			} catch (SQLException se2) {
-			}
-			try {
-				DBConnection.close();
+				
+				if (conn != null)
+					conn.close();
 			} catch (SQLException se) {
 				se.printStackTrace();
 			}
+			
 		}
 
 		return result;
@@ -1081,13 +1116,12 @@ public class AdminBasicDAO {
 			try {
 				if (pstmt != null)
 					pstmt.close();
-			} catch (SQLException se2) {
-			}
-			try {
-				DBConnection.close();
+				if (conn != null)
+					conn.close();
 			} catch (SQLException se) {
 				se.printStackTrace();
 			}
+			
 		}
 
 		return result;
@@ -1120,13 +1154,12 @@ public class AdminBasicDAO {
 			try {
 				if (pstmt != null)
 					pstmt.close();
-			} catch (SQLException se2) {
-			}
-			try {
-				DBConnection.close();
+				if (conn != null)
+					conn.close();
 			} catch (SQLException se) {
 				se.printStackTrace();
 			}
+			
 		}
 
 		return result;

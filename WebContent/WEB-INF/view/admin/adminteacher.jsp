@@ -31,15 +31,23 @@
 	$(document).ready(function() {
 		
 		
-		$(".teacherinsert").on("click", function(){
+		$('#value').keypress(function(event){
+		     if ( event.which == 13 ) {
+		         $('.searchbtn').click();
+		         return false;
+		     }
+		});
+		
+		
+		
+		
+		$(document).on("click",".teacherinsert", function(){
 			var txt ="";
 			
 			$.ajax({
 				url:"adminteachersub.it",
 				success : function(data){
-					console.log(data);
 					var myObj = JSON.parse(data);
-					console.log(myObj);
 					$.each(myObj, function(idx, item){
 						txt += "<label><input type='checkbox' name='sub' value='"+item.subject_id+"'>"+item.subject_name+"</label><br>";
 						
@@ -60,7 +68,7 @@
 			
 		});
 		
-		$(".subcount").on("click", function(){
+		$(document).on("click",".subcount", function(){
 			
 			var teacher_id = $(this).val();
 			var teacher_name = $(this).parents("tbody tr").children().eq(1).text();
@@ -68,12 +76,36 @@
 			console.log(teacher_id);
 			console.log(teacher_name);
 			console.log(teacher_phone);
-			
-		
-			
 			$("#tlist-Modal").modal("show");
 			
+		});
+		
+		
+		
+		$(".searchbtn").on("click", function(){
+			var txt ="";
 			
+			var key = $("#key").val();
+			var value =$("#value").val();
+			
+			$.ajax({
+				url :"adminteachersearch.it",
+				data : {"key":key, "value":value},
+				success : function(data){
+					var myObj = JSON.parse(data);
+					$.each(myObj, function(idx, item){
+						
+					txt += "<tr><td>"+item.teacher_id+"</td><td>"+item.teacher_name+"</td><td>"+item.teacher_ssn+"</td><td>"+item.teacher_phone+"</td><td>"+item.teacher_hiredate+"</td>";
+						txt += "<td><button type=\"button\" class=\"btn btn-default btn-sm subcount\" "+item.subcheck+"  "+item.count_+" value=\""+item.teacher_id+"\"><span class=\"badge\" id=\"Count\" >"+item.count_+"</span> 보기</button></td>";
+						txt += "<td><button type=\"button\" class=\"btn btn-default modifybtn\" "+item.check+" value=\""+item.teacher_id+"\" >수정</button></td>";
+						txt += "<td><button type=\"button\" class=\"btn btn-default delbtn\" "+item.check+" value=\""+item.teacher_id+"\">삭제</button></td></tr>";
+					
+							
+					})
+					
+					$(".searchlist").html(txt) 
+				
+				}});			
 		});
 		
 		
@@ -137,7 +169,7 @@
 						<th>삭제</th>
 					</tr>
 				</thead>
-				<tbody>
+				<tbody class="searchlist">
 <!-- 					<tr>
 						<td>TCH001</td>
 						<td>지재환</td>
@@ -153,18 +185,17 @@
 								data-toggle="modal" data-target="#t-del-Modal">삭제</button></td>
 					</tr> -->
 					<c:forEach var="a" items="${teacherlist}">
-					
 					<tr>
 						<td>${a.teacher_id}</td>
 						<td>${a.teacher_name}</td>
 						<td>${a.teacher_ssn}</td>
 						<td>${a.teacher_phone}</td>
 						<td>${a.teacher_hiredate}</td>
-						<td><button type="button" class="btn btn-default btn-sm subcount" ${teachersubcheck[a.teacher_id]} value="${a.teacher_id}">
+						<td><button type="button" class="btn btn-default btn-sm subcount"  ${a.count_==0?"disabled":"" } value="${a.teacher_id}">
 								<span class="badge" id="Count" >${a.count_}</span> 보기
 							</button></td>
 						<td><button type="button" class="btn btn-default modifybtn" value="${a.teacher_id}">수정</button></td>
-						<td><button type="button" class="btn btn-default delbtn" ${teachercheck1[a.teacher_id]} value="${a.teacher_id}">삭제</button></td>
+						<td><button type="button" class="btn btn-default delbtn" ${teacherdelcheck[a.teacher_id]} value="${a.teacher_id}">삭제</button></td>
 					</tr>
 					
 					
@@ -191,7 +222,7 @@
 					<input type="text" class="form-control" id="value" name="value" value="${value}"
 						required>
 				</div>
-				<button type="submit" class="btn btn-default">Search</button>
+				<button type="button" class="btn btn-default searchbtn">Search</button>
 			</form>
 
 

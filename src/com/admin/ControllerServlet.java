@@ -81,6 +81,9 @@ public class ControllerServlet extends HttpServlet {
 				AdminTeacherService service = new AdminTeacherService();
 				Method m = AdminTeacherService.class.getMethod(command, HttpServletRequest.class, HttpServletResponse.class);
 				viewPage = (String) m.invoke(service, request, response);
+				if(viewPage == null) {
+					return;
+				}
 				
 			}
 

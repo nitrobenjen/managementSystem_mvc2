@@ -30,7 +30,15 @@
 	$(document).ready(function() {
 		
 		
-		$(".modifybtn").on("click", function(){
+		$('#value').keypress(function(event){
+		     if ( event.which == 13 ) {
+		         $('.searchbtn').click();
+		         return false;
+		     }
+		});
+		
+		
+		$(document).on("click",".modifybtn", function(){
 			var class_id = $(this).val();
 			var class_name = $(this).parents("tbody tr").children().eq(1).text();
 			var jungwon = $(this).parents("tbody tr").children().eq(2).text();
@@ -44,7 +52,7 @@
 		
 		
 		
-		$(".delbtn").on("click", function(){
+		$(document).on("click",".delbtn", function(){
 			var class_id = $(this).val();
 			var class_name = $(this).parents("tbody tr").children().eq(1).text();	
 			$(".class_id").val(class_id);
@@ -53,6 +61,35 @@
 			$("#ca-del-Modal").modal("show");
 			
 		});	
+		
+		
+		
+		$(".searchbtn").on("click", function(){
+			var txt ="";
+			
+			var key = $("#key").val();
+			var value =$("#value").val();
+			
+			$.ajax({
+				url :"adminbasicclasssearch.it",
+				data : {"key":key, "value":value},
+				success : function(data){
+					var myObj = JSON.parse(data);
+					$.each(myObj, function(idx, item){
+						console.log(item.check2);
+						console.log(item.check);
+						
+						
+						txt += "<tr><td>"+item.class_id+"</td><td>"+item.class_name+"</td><td>"+item.jungwon+"</td><td><button type=\"button\" class=\"btn btn-default modifybtn\" "+item.check2+" value=\""+item.class_id+"\" >수정</button></td>";
+						txt += "<td><button type=\"button\" class=\"btn btn-default delbtn\" "+item.check+" value=\""+item.class_id+"\">삭제</button></td></tr>";
+					
+							
+					})
+					
+					$(".searchlist").html(txt) 
+				
+				}});			
+		});
 		
 		
 	});
@@ -109,7 +146,7 @@
 						<th>삭제</th>
 					</tr>
 				</thead>
-				<tbody>
+				<tbody class="searchlist">;
 <!-- 					<tr>
 						<td>CA001</td>
 						<td>제1강의실</td>
@@ -129,7 +166,7 @@
 							<td><button type="button" class="btn btn-default modifybtn"  ${classmodifycheck[a.class_id]}
 									value="${a.class_id}">수정</button></td>
 
-							<td><button type="button" class="btn btn-default delbtn" ${classlistcheck[a.class_id]} value="${a.class_id}">삭제</button></td>
+							<td><button type="button" class="btn btn-default delbtn" ${classdelcheck[a.class_id]} value="${a.class_id}">삭제</button></td>
 
 						</tr>
 
@@ -141,7 +178,7 @@
 			</table>
 
 
-			<form class="form-inline" method="post" action="${pageContext.request.contextPath}/adminbasicclass.it"  style="text-align: center;">
+			<form class="form-inline" style="text-align: center;">
 				<button type="button" style="float: left;" class="btn btn-default"
 					data-toggle="modal" data-target="#ca-insert-Modal">등록</button>
 				<div class="form-group">
@@ -153,7 +190,7 @@
 					<input type="text" class="form-control" id="value" name="value" value="${value}"
 						required>
 				</div>
-				<button type="submit" class="btn btn-default">Search</button>
+				<button type="button" class="btn btn-default searchbtn">Search</button>
 			</form>
 
 
