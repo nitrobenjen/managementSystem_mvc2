@@ -37,9 +37,7 @@ public class AdminTeacherDAO {
 			} else if ("phone".equals(key)) {
 				pstmt.setString(1, value);
 			}
-			System.out.println(key);
-			System.out.println(value);
-
+			
 			rs = pstmt.executeQuery();
 
 			while (rs.next()) {
@@ -72,7 +70,9 @@ public class AdminTeacherDAO {
 				if (pstmt != null) {
 					pstmt.close();
 				}
-				DBConnection.close();
+				if (conn != null) {
+					conn.close();
+				}
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -90,6 +90,7 @@ public class AdminTeacherDAO {
 
 		Connection conn = null;
 		PreparedStatement pstmt = null;
+		ResultSet rs =null;
 		try {
 			conn = DBConnection.connect();
 
@@ -97,25 +98,28 @@ public class AdminTeacherDAO {
 
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, value);
-			ResultSet rs = pstmt.executeQuery();
+			rs = pstmt.executeQuery();
 
 			while (rs.next()) {
 
 				result = rs.getInt("count_");
 			}
-			rs.close();
 		} catch (ClassNotFoundException | SQLException e) {
 			e.printStackTrace();
 		} finally {
 			try {
-				if (pstmt != null)
+				if (rs != null) {
+					rs.close();
+				}
+				if (pstmt != null) {
 					pstmt.close();
-			} catch (SQLException se2) {
-			}
-			try {
-				DBConnection.close();
-			} catch (SQLException se) {
-				se.printStackTrace();
+				}
+				if (conn != null) {
+					conn.close();
+				}
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
 
@@ -129,6 +133,7 @@ public class AdminTeacherDAO {
 
 		Connection conn = null;
 		PreparedStatement pstmt = null;
+		ResultSet rs = null;
 		try {
 			conn = DBConnection.connect();
 
@@ -136,25 +141,28 @@ public class AdminTeacherDAO {
 
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, value);
-			ResultSet rs = pstmt.executeQuery();
+			rs = pstmt.executeQuery();
 
 			while (rs.next()) {
 
 				result = rs.getInt("count_");
 			}
-			rs.close();
 		} catch (ClassNotFoundException | SQLException e) {
 			e.printStackTrace();
 		} finally {
 			try {
-				if (pstmt != null)
+				if (rs != null) {
+					rs.close();
+				}
+				if (pstmt != null) {
 					pstmt.close();
-			} catch (SQLException se2) {
-			}
-			try {
-				DBConnection.close();
-			} catch (SQLException se) {
-				se.printStackTrace();
+				}
+				if (conn != null) {
+					conn.close();
+				}
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
 
