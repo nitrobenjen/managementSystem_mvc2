@@ -170,8 +170,10 @@ public class AdminTeacherDAO {
 				if (pstmt != null) {
 					pstmt.close();
 				}
+
 				if (conn != null)
 					conn.close();
+
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -189,7 +191,8 @@ public class AdminTeacherDAO {
 
 		Connection conn = null;
 		PreparedStatement pstmt = null;
-		ResultSet rs = null;
+		ResultSet rs =null;
+
 		try {
 			conn = DBConnection.connect();
 
@@ -206,18 +209,20 @@ public class AdminTeacherDAO {
 			e.printStackTrace();
 		} finally {
 			try {
-				if (pstmt != null)
-					pstmt.close();
-				if (conn != null) {
-					conn.close();
-				}
-				if (rs != null) {
+				if (rs != null) 
 					rs.close();
-				}
+			
+				if (pstmt != null) 
+					pstmt.close();
+				if (conn != null) 
+					conn.close();
+				
 
 			} catch (SQLException se) {
 				se.printStackTrace();
-			}
+
+				}
+				
 
 		}
 
@@ -248,14 +253,18 @@ public class AdminTeacherDAO {
 			e.printStackTrace();
 		} finally {
 			try {
-				if (pstmt != null)
+				if (rs != null) 
+					rs.close();
+				
+				if (pstmt != null) 
 					pstmt.close();
+
 				if (conn != null)
 					conn.close();
-				if (rs != null)
-					rs.close();
+
 			} catch (SQLException se) {
 				se.printStackTrace();
+				
 			}
 
 		}
