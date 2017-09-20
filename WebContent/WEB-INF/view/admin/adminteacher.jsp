@@ -31,51 +31,62 @@
 	$(document).ready(function() {
 		
 		
-		$('#value').keypress(function(event){
+		 $('#value').keypress(function(event){
 		     if ( event.which == 13 ) {
 		         $('.searchbtn').click();
 		         return false;
 		     }
-		});
+		}); 
 		
 		
 		
 		
 		$(document).on("click",".teacherinsert", function(){
 			var txt ="";
+			var teacher_id = $(this).val();
 			
 			$.ajax({
 				url:"adminteachersub.it",
+				data:{"teacher_id":teacher_id},
 				success : function(data){
 					var myObj = JSON.parse(data);
 					$.each(myObj, function(idx, item){
 						txt += "<label><input type='checkbox' name='sub' value='"+item.subject_id+"'>"+item.subject_name+"</label><br>";
 						
 					})
-					$(".subcheckbox").append(txt) 
+					$(".subcheckbox").html(txt) 
 					$("#t-insert-Modal").modal("show");
 					
 				}
 					
 			});
-			
-			
-			
 		});
 		
-		$("#t-insert-Modal").on("hidden.bs.modal", function(){
-			$(".subcheckbox").html("")
-			
-		});
+		
 		
 		$(document).on("click",".subcount", function(){
+			var txt="";
 			
 			var teacher_id = $(this).val();
 			var teacher_name = $(this).parents("tbody tr").children().eq(1).text();
 			var teacher_phone = $(this).parents("tbody tr").children().eq(3).text();
-			console.log(teacher_id);
-			console.log(teacher_name);
-			console.log(teacher_phone);
+			
+			
+			$.ajax({
+				url : "adminteachersublist.it",
+				data : {"teacher_id":teacher_id},
+				success : function(data){
+					var myObj = JSON.parse(data);
+					$.each(myObj, function(idx, item){
+						
+						txt += "<tr><td>"+item.subject_id+"</td><td>"+item.subject_name+"</td></tr>";
+					})
+							
+					$(".modal-body1 h4").text(teacher_name +"/"+ teacher_phone);		
+					$(".sublist").html(txt);
+				
+			}})			
+			
 			$("#tlist-Modal").modal("show");
 			
 		});
@@ -83,7 +94,7 @@
 		
 		
 		$(".searchbtn").on("click", function(){
-			var txt ="";
+			var txt, txt2 ="";
 			
 			var key = $("#key").val();
 			var value =$("#value").val();
@@ -97,16 +108,48 @@
 						
 					txt += "<tr><td>"+item.teacher_id+"</td><td>"+item.teacher_name+"</td><td>"+item.teacher_ssn+"</td><td>"+item.teacher_phone+"</td><td>"+item.teacher_hiredate+"</td>";
 						txt += "<td><button type=\"button\" class=\"btn btn-default btn-sm subcount\" "+item.subcheck+"  "+item.count_+" value=\""+item.teacher_id+"\"><span class=\"badge\" id=\"Count\" >"+item.count_+"</span> 보기</button></td>";
-						txt += "<td><button type=\"button\" class=\"btn btn-default modifybtn\" "+item.check+" value=\""+item.teacher_id+"\" >수정</button></td>";
+						txt += "<td><button type=\"button\" class=\"btn btn-default modifybtn\" value=\""+item.teacher_id+"\" >수정</button></td>";
 						txt += "<td><button type=\"button\" class=\"btn btn-default delbtn\" "+item.check+" value=\""+item.teacher_id+"\">삭제</button></td></tr>";
 					
-							
 					})
 					
-					$(".searchlist").html(txt) 
+					$(".searchlist").html(txt);
+					
 				
 				}});			
 		});
+		
+		$(document).on("click", ".modifybtn", function(){
+			
+			var teacher_id = $(this).val();
+			var teacher_name = $(this).parents("tbody tr").children().eq(1).text();
+			var teacher_ssn = $(this).parents("tbody tr").children().eq(2).text();
+			var teacher_phone = $(this).parents("tbody tr").children().eq(3).text();
+			var txt="";
+			
+			$(".teacher_id").val(teacher_id);
+			$(".teacher_name").val(teacher_name);
+			$(".teacher_ssn").val(teacher_ssn);
+			$(".teacher_phone").val(teacher_phone);
+			
+			$.ajax({
+				url :"adminteachermodifysub.it",
+				data : {"teacher_id":teacher_id},
+				success : function(data){	
+					var myObj = JSON.parse(data);
+					$.each(myObj, function(idx, item){
+						txt += "<label><input type='checkbox' name='sub' "+item.check+" "+item.check2+" value='"+item.subject_id+"'>"+item.subject_name+"</label><br>";
+					
+					})
+					
+					$(".modifycheckbox").html(txt) 
+					$("#t-mod-Modal").modal("show");
+				}});
+			
+			
+		});
+		
+		
 		
 		
 		
@@ -117,12 +160,13 @@
 </head>
 <body>
 
-
 	<div id="main">
 		<div class="title">
 			<img src="${pageContext.request.contextPath}/img/sist_logo.png" width="300px">
 			<div class="login">관리자 님 │ 로그아웃</div>
 		</div>
+		<%-- <div style="${code==101?'display:none':''}">입력 실패</div> --%>
+		
 		<div id="menu">
 		<div class="menu">
 			<ul class="nav nav-pills nav-justified">
@@ -135,6 +179,7 @@
 							<li><a href="${pageContext.request.contextPath}/adminbasicclass.it">강의실명</a></li>
 					</ul>
 				</li>
+				
 				<li class="active"><a href="${pageContext.request.contextPath}/adminteachermain.it">강사 계정 관리</a></li>
 				<li><a href="${pageContext.request.contextPath}/admin/admin301.jsp">개설 과정/과목 관리</a></li>
 					<li><a href="${pageContext.request.contextPath}/admin/admin401.jsp">수강생 관리</a></li>
@@ -197,13 +242,8 @@
 						<td><button type="button" class="btn btn-default modifybtn" value="${a.teacher_id}">수정</button></td>
 						<td><button type="button" class="btn btn-default delbtn" ${teacherdelcheck[a.teacher_id]} value="${a.teacher_id}">삭제</button></td>
 					</tr>
-					
-					
-										
+							
 					</c:forEach>
-					
-					
-					
 				</tbody>
 			</table>
 
@@ -241,7 +281,7 @@
 					<button type="button" class="close" data-dismiss="modal">&times;</button>
 					<h5 class="modal-title">강의 가능 과목</h5>
 				</div>
-				<div class="modal-body">
+				<div class="modal-body1 modal-body">
 				
 					<h4 style="text-align:center;">TCH001 지재환 / 010-8888-7474</h4>
 
@@ -254,7 +294,7 @@
 						<th>과목명</th>
 					</tr>
 				</thead>
-				<tbody>
+				<tbody class="sublist">
 					<tr>
 						<td>SUB001</td>
 						<td>자바 네트워트 프로그래밍</td>
@@ -334,77 +374,48 @@
 			<div class="modal-content">
 				<div class="modal-header">
 					<button type="button" class="close" data-dismiss="modal">&times;</button>
-					<h5 class="modal-title">강사 계정 수정</h5>
+					<h5 class="modal-title2 modal-title">강사 계정 수정</h5>
 				</div>
-				<div class="modal-body">
+				<form class="form-horizontal" action="${pageContext.request.contextPath}/adminteachermodify.it" method="post">
+				<div class="modal-body2 modal-body">
 				
-					<form class="form-horizontal">
+					
 						<div class="form-group">
 							<label class="control-label col-sm-3">아이디</label>
 							<div class="col-sm-9">
-								<input class="form-control" id="focusedInput" type="text" value="TCH001" readonly>
+								<input class="form-control teacher_id" name="teacher_id"  type="text" value="TCH001" readonly>
 							</div>
 							<label class="control-label col-sm-3 m10">이름</label>
 							<div class="col-sm-9 m10">
-								<input class="form-control" id="focusedInput" type="text" value="지재환">
+								<input class="form-control teacher_name" name="teacher_name"  type="text" value="지재환">
 							</div>
 							<label class="control-label col-sm-3 m10">전화번호</label>
 							<div class="col-sm-9 m10">
-								<input class="form-control" id="focusedInput" type="text" value="010-8888-7474">
+								<input class="form-control teacher_phone" name="teacher_phone"  type="text" value="010-8888-7474">
 							</div>
 							<label class="control-label col-sm-3 m10">주민번호</label>
 							<div class="col-sm-9 m10">
-								<input class="form-control" id="focusedInput" type="text" value="1687988">
+								<input class="form-control teacher_ssn" name="teacher_ssn" type="text" value="1687988">
 							</div>
 							<label class="control-label col-sm-3 m10">강의 가능 과목</label>
 							<div class="col-sm-9 m10">
-								<div class="checkbox">
-								<label><input type="checkbox" value="SUB001" checked>자바 네트워트 프로그래밍</label>
+							
+								<div class="checkbox modifycheckbox">
+								
+								<!-- <label><input type="checkbox" value="SUB001" checked>자바 네트워트 프로그래밍</label> -->
+								
+								
 								</div>
-								<div class="checkbox">
-								<label><input type="checkbox" value="SUB002" checked>자바 웹 프로그래밍</label>
-								</div>
-								<div class="checkbox">
-								<label><input type="checkbox" value="SUB003" checked>JDBC 프로그래밍</label>
-								</div>
-								<div class="checkbox">
-								<label><input type="checkbox" value="SUB004" checked>HTML5/CSS3/JavaScript</label>
-								</div>
-								<div class="checkbox">
-								<label><input type="checkbox" value="SUB005" checked>jQuery & Ajax</label>
-								</div>
-								<div class="checkbox">
-								<label><input type="checkbox" value="SUB006">UI디자인</label>
-								</div>
-								<div class="checkbox">
-								<label><input type="checkbox" value="SUB007">UI/UX가이드 제작</label>
-								</div>
-								<div class="checkbox">
-								<label><input type="checkbox" value="SUB008">플랫폼별 UI디자인</label>
-								</div>
-								<div class="checkbox">
-								<label><input type="checkbox" value="SUB009">Framework</label>
-								</div>
-								<div class="checkbox">
-								<label><input type="checkbox" value="SUB010">Oracle DBMS</label>
-								</div>
-								<div class="checkbox">
-								<label><input type="checkbox" value="SUB011">Front-end 개발</label>
-								</div>
-								<div class="checkbox">
-								<label><input type="checkbox" value="SUB012">빅데이터 분석 및 시각화</label>
-								</div>
-								<div class="checkbox">
-								<label><input type="checkbox" value="SUB013">실무 프로젝트 통합구현</label>
-								</div>
+								
 							</div>
 						</div>
-					</form>
+					
 				</div>
 				<div class="modal-footer">
 					<button type="submit" class="btn btn-default">수정</button>
 					<button type="button" class="btn btn-default" data-dismiss="modal">닫기</button>
 				</div>
+				</form>
 			</div>
 
 		</div>

@@ -2,6 +2,7 @@ package com.admin;
 
 import lombok.Data;
 
+
 @Data
 public class AdminBasic {
 	
